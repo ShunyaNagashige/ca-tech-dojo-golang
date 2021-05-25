@@ -11,4 +11,8 @@ RUN go get github.com/uudashr/gopkgs/v2/cmd/gopkgs \
   golang.org/x/lint/golint \
   golang.org/x/tools/gopls
 
+RUN go get -u github.com/oxequa/realize
+
+CMD ["realize", "start"]
+
 WORKDIR /go/src/github.com/ShunyaNagashige/ca-tech-dojo-golang

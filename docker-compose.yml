@@ -9,8 +9,8 @@ services:
     volumes:
       - .:/go/src/github.com/ShunyaNagashige/ca-tech-dojo-golang
     ports:
-      #APIサーバ用のポート
-      - ${API_PORT}:8080
+      #APPサーバ用のポート
+      - ${APP_PORT}:8080
     depends_on:
       - "db"
 
