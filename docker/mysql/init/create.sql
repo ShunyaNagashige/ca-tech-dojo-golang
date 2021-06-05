@@ -1,4 +1,4 @@
-USE homestead;
+USE gamedb;
 
 CREATE TABLE users(
     user_id INT(11) UNSIGNED AUTO_INCREMENT NOT NULL,

@@ -2,4 +2,5 @@
 /docker/mysql/my.cnf
 *.env
 config.ini
-go.sum
+app.out
+app.log
