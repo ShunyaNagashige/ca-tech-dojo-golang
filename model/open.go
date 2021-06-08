@@ -2,7 +2,6 @@ package model
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 
 	"github.com/ShunyaNagashige/ca-tech-dojo-golang/config"
@@ -37,8 +36,6 @@ var dbConn *sql.DB
 
 func init() {
 	var err error
-
-	fmt.Println(createDsn())
 
 	//DBに接続(DBのオープン)
 	dbConn, err = sql.Open(config.Config.SqlDriver, createDsn())
