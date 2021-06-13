@@ -17,6 +17,10 @@ func (err *DbError) Error() string {
 	return err.Err.Error()
 }
 
+func NewDbError(cmd string,err error)*DbError{
+	return &DbError{cmd,err}
+}
+
 func createDsn() string {
 	return config.Config.DbUserName +
 		":" + config.Config.DbPassword +

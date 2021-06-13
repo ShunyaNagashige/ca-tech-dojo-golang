@@ -6,7 +6,11 @@ import (
 	"github.com/ShunyaNagashige/ca-tech-dojo-golang/model"
 )
 
-func TestGetAll(t *testing.T) {
+func TestCreateUser(t *testing.T){
+	
+}
+
+func TestGetAllUser(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {

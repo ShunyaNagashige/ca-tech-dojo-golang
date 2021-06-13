@@ -1,4 +1,5 @@
-USE gamedb;
+/* テスト用のDBに流し込むSQL */
+USE game_db_test;
 
 CREATE TABLE users(
     user_id INT(11) UNSIGNED AUTO_INCREMENT NOT NULL,
