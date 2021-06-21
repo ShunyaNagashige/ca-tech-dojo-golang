@@ -17,11 +17,11 @@ func (err *DbError) Error() string {
 	return err.Err.Error()
 }
 
-func NewDbError(cmd string,err error)*DbError{
-	return &DbError{cmd,err}
+func NewDbError(cmd string, err error) *DbError {
+	return &DbError{cmd, err}
 }
 
-func createDsn() string {
+func CreateDsn() string {
 	return config.Config.DbUserName +
 		":" + config.Config.DbPassword +
 		"@" + config.Config.DbProtocol +
@@ -36,13 +36,13 @@ const (
 	tableNameUserCharacters = "user_characters"
 )
 
-var dbConn *sql.DB
+var DbConn *sql.DB
 
-func init() {
+func Open() {
 	var err error
 
 	//DBに接続(DBのオープン)
-	dbConn, err = sql.Open(config.Config.SqlDriver, createDsn())
+	DbConn, err = sql.Open(config.Config.SqlDriver, CreateDsn())
 	if err != nil {
 		log.Fatalf("Failed to open a database: %v", err)
 	}

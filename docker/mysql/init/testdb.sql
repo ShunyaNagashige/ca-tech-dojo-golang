@@ -3,14 +3,14 @@ USE game_db_test;
 
 CREATE TABLE users(
     user_id INT(11) UNSIGNED AUTO_INCREMENT NOT NULL,
-    user_name VARCHAR(30) NOT NULL,
-    token VARCHAR(30) NOT NULL UNIQUE,
+    user_name VARCHAR(32) NOT NULL,
+    token VARCHAR(64) NOT NULL UNIQUE,
     PRIMARY KEY (user_id)
 );
 
 CREATE TABLE characters(
     character_id INT(11) UNSIGNED AUTO_INCREMENT NOT NULL,
-    character_name VARCHAR(30) NOT NULL,
+    character_name VARCHAR(32) NOT NULL,
     times FLOAT(4,4) NOT NULL,
     PRIMARY KEY (character_id)
 );
