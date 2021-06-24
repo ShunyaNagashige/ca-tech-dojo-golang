@@ -53,8 +53,8 @@ func (u *User) CreateUser(DbConn *sql.DB) error {
 }
 
 func (u *User) UpdateUser(DbConn *sql.DB) error {
-	cmd := fmt.Sprintf("UPDATE %s(user_name) VALUES(?,?)", tableNameUsers)
-	if _, err := DbConn.Exec(cmd, u.User_name, u.Token); err != nil {
+	cmd := fmt.Sprintf("UPDATE %s SET user_name = ?  WHERE token = ?", tableNameUsers)
+	if _, err := DbConn.Exec(cmd, u.User_name,u.Token); err != nil {
 		return NewDbError(cmd, err)
 	}
 

@@ -65,45 +65,6 @@ func isUserEqual(t *testing.T, expected, result *model.User) bool {
 	return true
 }
 
-func TestGetUser(t *testing.T) {
-	cases := []struct {
-		name     string
-		token    string
-		expected *model.User
-		err      error
-	}{
-		{
-			name:     "ok",
-			token:    "5555",
-			expected: &model.User{User_id: 1, User_name: "test", Token: "5555"},
-			err:      nil,
-		},
-	}
-
-	for _, tt := range cases {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			dbConn, err := sql.Open("txdb", uuid.New().String())
-			if err != nil {
-				t.Fatalf("failed to Open (failed to start transaction): %v", err)
-			}
-
-			//トランザクション内で実行したクエリを全てロールバック
-			defer dbConn.Close()
-
-			actual, err := model.GetUser(dbConn, tt.token)
-
-			if err != tt.err {
-				t.Errorf("want %#v, got %#v", tt.err, err)
-			}
-
-			if *tt.expected != *actual {
-				t.Errorf("want %#v, got %#v", *tt.expected, *actual)
-			}
-		})
-	}
-}
-
 func TestUser_CreateUser(t *testing.T) {
 	cases := []struct {
 		name string
@@ -139,6 +100,85 @@ func TestUser_CreateUser(t *testing.T) {
 
 			if tt.u.User_name != actual.User_name {
 				t.Errorf("want %#v, got %#v", *tt.u, *actual)
+			}
+		})
+	}
+}
+
+func TestUser_UpdateUser(t *testing.T) {
+	cases := []struct {
+		name string
+		u    *model.User
+		err  error
+	}{
+		{
+			name: "ok",
+			u:    &model.User{User_name: "Taro",Token: "5555"},
+			err:  nil,
+		},
+	}
+
+	for _, tt := range cases {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			dbConn, err := sql.Open("txdb", uuid.New().String())
+			if err != nil {
+				t.Fatalf("failed to Open (failed to start transaction): %v", err)
+			}
+
+			//トランザクション内で実行したクエリを全てロールバック
+			defer dbConn.Close()
+
+			if err := tt.u.UpdateUser(dbConn); err != tt.err {
+				t.Errorf("want %v, got %v", tt.err, err)
+			}
+
+			actual, err := model.GetUser(dbConn, tt.u.Token)
+			if err != nil {
+				t.Fatalf("failed to model.GetUser: %v", err)
+			}
+
+			if tt.u.User_name != actual.User_name {
+				t.Errorf("want %#v, got %#v", tt.u, actual)
+			}
+		})
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	cases := []struct {
+		name     string
+		token    string
+		expected *model.User
+		err      error
+	}{
+		{
+			name:     "ok",
+			token:    "5555",
+			expected: &model.User{User_id: 1, User_name: "test", Token: "5555"},
+			err:      nil,
+		},
+	}
+
+	for _, tt := range cases {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			dbConn, err := sql.Open("txdb", uuid.New().String())
+			if err != nil {
+				t.Fatalf("failed to Open (failed to start transaction): %v", err)
+			}
+
+			//トランザクション内で実行したクエリを全てロールバック
+			defer dbConn.Close()
+
+			actual, err := model.GetUser(dbConn, tt.token)
+
+			if err != tt.err {
+				t.Errorf("want %#v, got %#v", tt.err, err)
+			}
+
+			if *tt.expected != *actual {
+				t.Errorf("want %#v, got %#v", *tt.expected, *actual)
 			}
 		})
 	}
