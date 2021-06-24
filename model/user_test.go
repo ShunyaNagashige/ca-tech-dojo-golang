@@ -2,32 +2,50 @@ package model_test
 
 import (
 	"database/sql"
-	"fmt"
+	"os"
 	"strings"
 	"testing"
 
+	"github.com/DATA-DOG/go-txdb"
 	"github.com/ShunyaNagashige/ca-tech-dojo-golang/config"
 	"github.com/ShunyaNagashige/ca-tech-dojo-golang/model"
+	"github.com/google/uuid"
 )
 
-func openTestdb(t *testing.T) {
-	t.Helper()
+func TestMain(m *testing.M) {
+	testDsn := createTestDsn()
 
+	txdb.Register(config.Config.TestSqlDriver, config.Config.SqlDriver, testDsn)
+
+	// 以下の２行がなぜ必要なのか，まだわかっていない
+	// ただ，以下の２行を消すと，デバッグできなくなることは分かっている
+	code := m.Run()
+	os.Exit(code)
+}
+
+func createTestDsn() (testDsn string) {
 	//テスト用のdsnを生成
-	testDsn := strings.Replace(model.CreateDsn(),
+	testDsn = strings.Replace(model.CreateDsn(),
 		"/"+config.Config.DbName, "/"+config.Config.TestdbName, 1)
 
-	fmt.Println(model.CreateDsn())
-	fmt.Println(testDsn)
-
-	var err error
-	
-	//DBに接続(DBのオープン)
-	model.DbConn, err = sql.Open(config.Config.SqlDriver, testDsn)
-	if err != nil {
-		t.Fatalf("failed to open a database: %v", err)
-	}
+	return testDsn
 }
+
+// func openTestdb() (testDsn string){
+// 	//テスト用のdsnを生成
+// 	testDsn = strings.Replace(model.CreateDsn(),
+// 		"/"+config.Config.DbName, "/"+config.Config.TestdbName, 1)
+
+// 	var err error
+
+// 	//DBに接続(DBのオープン)
+// 	model.DbConn, err = sql.Open(config.Config.SqlDriver, testDsn)
+// 	if err != nil {
+// 		log.Fatalf("failed to open a database: %v", err)
+// 	}
+
+// 	return testDsn
+// }
 
 func isUserEqual(t *testing.T, expected, result *model.User) bool {
 	t.Helper()
@@ -65,9 +83,15 @@ func TestGetUser(t *testing.T) {
 	for _, tt := range cases {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			openTestdb(t)
+			dbConn, err := sql.Open("txdb", uuid.New().String())
+			if err != nil {
+				t.Fatalf("failed to Open (failed to start transaction): %v", err)
+			}
 
-			actual, err := model.GetUser(tt.token)
+			//トランザクション内で実行したクエリを全てロールバック
+			defer dbConn.Close()
+
+			actual, err := model.GetUser(dbConn, tt.token)
 
 			if err != tt.err {
 				t.Errorf("want %#v, got %#v", tt.err, err)
@@ -96,20 +120,19 @@ func TestUser_CreateUser(t *testing.T) {
 	for _, tt := range cases {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			openTestdb(t)
-
-			//トランザクションを貼って，テストが終わればロールバックする
-			//これにより，このテストが他のテストに影響を及ぼさないようにする．
-			tx, err := model.DbConn.Begin()
+			dbConn, err := sql.Open("txdb", uuid.New().String())
 			if err != nil {
-				t.Fatalf("failed to DbConn.Begin: %v", err)
+				t.Fatalf("failed to Open (failed to start transaction): %v", err)
 			}
 
-			if err := tt.u.CreateUser(); err != tt.err {
+			//トランザクション内で実行したクエリを全てロールバック
+			defer dbConn.Close()
+
+			if err := tt.u.CreateUser(dbConn); err != tt.err {
 				t.Errorf("want %v, got %v", tt.err, err)
 			}
 
-			actual, err := model.GetUser(tt.u.Token)
+			actual, err := model.GetUser(dbConn, tt.u.Token)
 			if err != nil {
 				t.Fatalf("failed to model.GetUser: %v", err)
 			}
@@ -117,8 +140,6 @@ func TestUser_CreateUser(t *testing.T) {
 			if tt.u.User_name != actual.User_name {
 				t.Errorf("want %#v, got %#v", *tt.u, *actual)
 			}
-
-			tx.Rollback()
 		})
 	}
 }
@@ -141,16 +162,23 @@ func TestGetAllUser(t *testing.T) {
 	for _, tt := range cases {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			openTestdb(t)
 
-			actual, err := model.GetAllUser()
+			dbConn, err := sql.Open("txdb", uuid.New().String())
+			if err != nil {
+				t.Fatalf("failed to Open (failed to start transaction): %v", err)
+			}
+
+			//トランザクション内で実行したクエリを全てロールバック
+			defer dbConn.Close()
+
+			actual, err := model.GetAllUser(dbConn)
 
 			if err != tt.err {
 				t.Errorf("want %#v, got %#v", tt.err, err)
 			}
 
 			if len(actual) != len(tt.expected) {
-				t.Errorf("len(actual)=%d is different from len(tt.expected)=%d", len(actual), len(tt.expected))
+				t.Fatalf("want %#v, got %#v", tt.expected, actual)
 			}
 
 			for i := 0; i < len(tt.expected); i++ {

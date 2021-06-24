@@ -34,7 +34,7 @@ func createToken() (string, error) {
 	// return *(*string)(unsafe.Pointer(&b)), nil
 }
 
-func (u *User) CreateUser() error {
+func (u *User) CreateUser(DbConn *sql.DB) error {
 	var err error
 
 	u.Token, err = createToken()
@@ -52,7 +52,7 @@ func (u *User) CreateUser() error {
 	return nil
 }
 
-func (u *User) UpdateUser() error {
+func (u *User) UpdateUser(DbConn *sql.DB) error {
 	cmd := fmt.Sprintf("UPDATE %s(user_name) VALUES(?,?)", tableNameUsers)
 	if _, err := DbConn.Exec(cmd, u.User_name, u.Token); err != nil {
 		return NewDbError(cmd, err)
@@ -61,7 +61,7 @@ func (u *User) UpdateUser() error {
 	return nil
 }
 
-func GetUser(token string) (*User, error) {
+func GetUser(DbConn *sql.DB, token string) (*User, error) {
 	var u User
 
 	cmd := fmt.Sprintf("SELECT * FROM %s WHERE token = ?", tableNameUsers)
@@ -78,7 +78,7 @@ func GetUser(token string) (*User, error) {
 	return &u, nil
 }
 
-func GetAllUser() ([]User, error) {
+func GetAllUser(DbConn *sql.DB) ([]User, error) {
 	cmd := fmt.Sprintf("SELECT * FROM %s", tableNameUsers)
 	rows, err := DbConn.Query(cmd)
 	if err != nil {
