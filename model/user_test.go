@@ -50,11 +50,11 @@ func createTestDsn() (testDsn string) {
 func isUserEqual(t *testing.T, expected, result *model.User) bool {
 	t.Helper()
 
-	if result.User_id != expected.User_id {
+	if result.UserId != expected.UserId {
 		return false
 	}
 
-	if result.User_name != expected.User_name {
+	if result.UserName != expected.UserName {
 		return false
 	}
 
@@ -73,7 +73,7 @@ func TestUser_CreateUser(t *testing.T) {
 	}{
 		{
 			name: "ok",
-			u:    &model.User{User_name: "Taro"},
+			u:    &model.User{UserName: "Taro"},
 			err:  nil,
 		},
 	}
@@ -89,7 +89,7 @@ func TestUser_CreateUser(t *testing.T) {
 			//トランザクション内で実行したクエリを全てロールバック
 			defer dbConn.Close()
 
-			if err := tt.u.CreateUser(dbConn); err != tt.err {
+			if _,err := tt.u.CreateUser(dbConn); err != tt.err {
 				t.Errorf("want %v, got %v", tt.err, err)
 			}
 
@@ -98,7 +98,7 @@ func TestUser_CreateUser(t *testing.T) {
 				t.Fatalf("failed to model.GetUser: %v", err)
 			}
 
-			if tt.u.User_name != actual.User_name {
+			if tt.u.UserName != actual.UserName {
 				t.Errorf("want %#v, got %#v", *tt.u, *actual)
 			}
 		})
@@ -113,7 +113,7 @@ func TestUser_UpdateUser(t *testing.T) {
 	}{
 		{
 			name: "ok",
-			u:    &model.User{User_name: "Taro",Token: "5555"},
+			u:    &model.User{UserName: "Taro",Token: "5555"},
 			err:  nil,
 		},
 	}
@@ -138,7 +138,7 @@ func TestUser_UpdateUser(t *testing.T) {
 				t.Fatalf("failed to model.GetUser: %v", err)
 			}
 
-			if tt.u.User_name != actual.User_name {
+			if tt.u.UserName != actual.UserName {
 				t.Errorf("want %#v, got %#v", tt.u, actual)
 			}
 		})
@@ -155,7 +155,7 @@ func TestGetUser(t *testing.T) {
 		{
 			name:     "ok",
 			token:    "5555",
-			expected: &model.User{User_id: 1, User_name: "test", Token: "5555"},
+			expected: &model.User{UserId: 1, UserName: "test", Token: "5555"},
 			err:      nil,
 		},
 	}
@@ -193,7 +193,7 @@ func TestGetAllUser(t *testing.T) {
 		{
 			name: "ok",
 			expected: []model.User{
-				{User_id: 1, User_name: "test", Token: "5555"},
+				{UserId: 1, UserName: "test", Token: "5555"},
 			},
 			err: nil,
 		},

@@ -9,9 +9,13 @@ import (
 )
 
 type User struct {
-	User_id   int
-	User_name string
+	UserId   int `json:"user_id"`
+	UserName string `json:"user_name"`
 	Token     string
+}
+
+func NewUser(userId int,userName,token string)*User{
+	return &User{UserId: userId,UserName: userName,Token: token}
 }
 
 const (
@@ -34,31 +38,20 @@ func createToken() (string, error) {
 	// return *(*string)(unsafe.Pointer(&b)), nil
 }
 
-func (u *User) CreateUser(DbConn *sql.DB) error {
+func (u *User) CreateUser(DbConn *sql.DB) (string,error) {
 	var err error
 
 	u.Token, err = createToken()
 	if err != nil {
-		return errors.Wrapf(err, "failed to createToken. u.Token=%s", u.Token)
+		return "",errors.Wrapf(err, "failed to createToken. u.Token=%s", u.Token)
 	}
-
-	fmt.Println(u.Token)
 
 	cmd := fmt.Sprintf("INSERT INTO %s(user_name,token) VALUES(?,?)", tableNameUsers)
-	if _, err := DbConn.Exec(cmd, u.User_name, u.Token); err != nil {
-		return NewDbError(cmd, err)
+	if _, err := DbConn.Exec(cmd, u.UserName, u.Token); err != nil {
+		return "",NewDbError(cmd, err)
 	}
 
-	return nil
-}
-
-func (u *User) UpdateUser(DbConn *sql.DB) error {
-	cmd := fmt.Sprintf("UPDATE %s SET user_name = ?  WHERE token = ?", tableNameUsers)
-	if _, err := DbConn.Exec(cmd, u.User_name,u.Token); err != nil {
-		return NewDbError(cmd, err)
-	}
-
-	return nil
+	return u.Token,nil
 }
 
 func GetUser(DbConn *sql.DB, token string) (*User, error) {
@@ -67,15 +60,25 @@ func GetUser(DbConn *sql.DB, token string) (*User, error) {
 	cmd := fmt.Sprintf("SELECT * FROM %s WHERE token = ?", tableNameUsers)
 	row := DbConn.QueryRow(cmd, token)
 
-	if err := row.Scan(&u.User_id, &u.User_name, &u.Token); err != nil {
+	if err := row.Scan(&u.UserId, &u.UserName, &u.Token); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, NewDbError(cmd, err)
 		} else {
-			return nil, errors.Wrapf(err, "failed to Scan. u=%#v", u)
+			return nil, errors.Wrapf(err, "failed to Scan.u=%#v", u)
 		}
 	}
 
 	return &u, nil
+}
+
+
+func (u *User) UpdateUser(DbConn *sql.DB) error {
+	cmd := fmt.Sprintf("UPDATE %s SET user_name = ?  WHERE token = ?", tableNameUsers)
+	if _, err := DbConn.Exec(cmd, u.UserName,u.Token); err != nil {
+		return NewDbError(cmd, err)
+	}
+
+	return nil
 }
 
 func GetAllUser(DbConn *sql.DB) ([]User, error) {
@@ -90,7 +93,7 @@ func GetAllUser(DbConn *sql.DB) ([]User, error) {
 	for rows.Next() {
 		var u User
 
-		rows.Scan(&u.User_id, &u.User_name, &u.Token)
+		rows.Scan(&u.UserId, &u.UserName, &u.Token)
 		users = append(users, u)
 	}
 
